@@ -48,3 +48,20 @@ export function getURLsFromHTML(htmlBody: string, baseURL: string) {
   }
   return urls;
 }
+
+export async function crawlPage(urlPage: string) {
+  try {
+    const response = await fetch(urlPage);
+    console.log(response.headers.get("content-type"));
+    if (
+      response.status !== 200 ||
+      response.headers.get("content-type") !== "text/html; charset=utf-8"
+    ) {
+      throw new Error(`Failed to fetch page: ${urlPage}`);
+    }
+    const htmlBody = await response.text();
+    console.log(htmlBody);
+  } catch (error: any) {
+    console.error(error.message);
+  }
+}
