@@ -12,25 +12,12 @@ To be specific, it should:
 import { Url as URL } from "node:url";
 
 export default function normalizeURL(params: string) {
-  const regex = /^(https?:\/\/)?(blog.boot.dev\/)(.*)$/;
-  const match = params.match(regex);
-  if (match) {
-    const url = new URL(params);
-    if (url.hostname.match("blog.boot.dev") == null) {
-      throw new Error("Invalid URL");
-    } else if (
-      url.pathname.toString() !== "/path" &&
-      url.pathname.toString() !== "/path/"
-    ) {
-      throw new Error("Invalid URL");
-    } else if (
-      url.protocol.toString() !== "http:" &&
-      url.protocol.toString() !== "https:"
-    ) {
-      throw new Error("Invalid URL");
-    }
-    return "blog.boot.dev/path";
-  } else {
-    throw new Error("Invalid URL");
+  const url = new URL(params);
+  const host = url.host.toLowerCase();
+  const path = url.pathname.toLowerCase();
+  const constructedURL = `${host}${path}`;
+  if (constructedURL.length > 15 && constructedURL.slice(-1) === "/") {
+    return constructedURL.slice(0, -1);
   }
+  return constructedURL;
 }
