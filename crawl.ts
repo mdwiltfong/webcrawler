@@ -62,7 +62,7 @@ Overall Steps:
 4. Otherwise, add an entry to the pages object. 
 */
 
-type Pages = {
+export type Pages = {
   [site: string]: number;
 };
 export async function crawlPage(

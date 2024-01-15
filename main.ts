@@ -1,5 +1,6 @@
 import { argv } from "node:process";
 import { getURLsFromHTML, normalizeURL, crawlPage } from "./crawl";
+import { printReport } from "./report";
 async function main() {
   try {
     if (argv.length < 3 || argv.length > 3) {
@@ -9,7 +10,7 @@ async function main() {
     const BASE_URL = argv[2];
     console.log(`Starting with ${BASE_URL}`);
     const pages = await crawlPage(BASE_URL, BASE_URL, {});
-    console.log(pages);
+    printReport(pages!);
   } catch (error: any) {
     console.error(error.message);
   }
