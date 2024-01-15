@@ -9,7 +9,7 @@ To be specific, it should:
     - http://blog.boot.dev/path/
     - http://blog.boot.dev/path
 */
-import { Url as URL } from "node:url";
+
 import { JSDOM } from "jsdom";
 
 export function normalizeURL(params: string) {
@@ -71,29 +71,38 @@ export async function crawlPage(
   pages: Pages
 ): Promise<Pages | undefined> {
   try {
-    if (currentURL.slice(5, 8) !== baseURL.slice(5, 8)) {
+    const curURL = new URL(currentURL);
+    const basURL = new URL(baseURL);
+    if (curURL.hostname !== basURL.hostname) {
       return pages;
     }
     const normalizedURL = normalizeURL(currentURL);
-    if (pages[normalizedURL]) {
+    if (pages[normalizedURL] > 0) {
       pages[normalizedURL]++;
+      return pages;
     } else {
-      pages[normalizedURL] = 1;
+      if (currentURL !== baseURL) {
+        pages[normalizedURL] = 1;
+      } else {
+        pages[normalizedURL] = 0;
+      }
     }
-
+    console.log("Crawling - > ", currentURL);
     const response = await fetch(currentURL);
-    console.log(response.headers.get("content-type"));
-    if (
-      response.status !== 200 ||
-      response.headers.get("content-type") !== "text/html; charset=utf-8"
-    ) {
-      throw new Error(`Failed to fetch page: ${baseURL}`);
+    if (response.status !== 200) {
+      console.log(`Got HTTP Error: ${response.status}`);
+      return pages;
+    }
+    const contentType = response.headers.get("content-type")!;
+    if (!contentType.includes("text/html")) {
+      console.log(`Got text/html response: ${contentType}`);
+      return pages;
     }
     const htmlBody = await response.text();
     const urls = getURLsFromHTML(htmlBody, currentURL);
     for (let i = 0; i < urls.length; i++) {
       const url = urls[i];
-      crawlPage(baseURL, url, pages);
+      await crawlPage(baseURL, url, pages)!;
     }
     return pages;
   } catch (error: any) {

@@ -8,7 +8,8 @@ async function main() {
     }
     const BASE_URL = argv[2];
     console.log(`Starting with ${BASE_URL}`);
-    await crawlPage(BASE_URL, BASE_URL, {});
+    const pages = await crawlPage(BASE_URL, BASE_URL, {});
+    console.log(pages);
   } catch (error: any) {
     console.error(error.message);
   }
