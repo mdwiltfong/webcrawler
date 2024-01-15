@@ -49,18 +49,53 @@ export function getURLsFromHTML(htmlBody: string, baseURL: string) {
   return urls;
 }
 
-export async function crawlPage(urlPage: string) {
+/*
+- In the first call of crawlPage(), currentURL will be the baseURL.
+- As we make additional fetch requests to all the URLs we find on on baseURL, the currentURL will cahnge while the base stays the same.
+- The `pages` object will be used to keep track of the number of times we've seen an internal link. 
+- crawlPage will always return an updated `pages` object. 
+
+Overall Steps:
+1. Make sure the currentURL and the baseURL are in the same domain. If not, return the pages object. We only want to crawl the site we seed. Not the entire internet. 
+2. Get a normalized version of currentURL.
+3. If the pages object already has an entry for the currentURL, increment the count.
+4. Otherwise, add an entry to the pages object. 
+*/
+
+type Pages = {
+  [site: string]: number;
+};
+export async function crawlPage(
+  baseURL: string,
+  currentURL: string,
+  pages: Pages
+): Promise<Pages | undefined> {
   try {
-    const response = await fetch(urlPage);
+    if (currentURL.slice(5, 8) !== baseURL.slice(5, 8)) {
+      return pages;
+    }
+    const normalizedURL = normalizeURL(currentURL);
+    if (pages[normalizedURL]) {
+      pages[normalizedURL]++;
+    } else {
+      pages[normalizedURL] = 1;
+    }
+
+    const response = await fetch(currentURL);
     console.log(response.headers.get("content-type"));
     if (
       response.status !== 200 ||
       response.headers.get("content-type") !== "text/html; charset=utf-8"
     ) {
-      throw new Error(`Failed to fetch page: ${urlPage}`);
+      throw new Error(`Failed to fetch page: ${baseURL}`);
     }
     const htmlBody = await response.text();
-    console.log(htmlBody);
+    const urls = getURLsFromHTML(htmlBody, currentURL);
+    for (let i = 0; i < urls.length; i++) {
+      const url = urls[i];
+      crawlPage(baseURL, url, pages);
+    }
+    return pages;
   } catch (error: any) {
     console.error(error.message);
   }
