@@ -11,7 +11,7 @@ To be specific, it should:
 */
 
 import { JSDOM } from "jsdom";
-
+import Queue from "./Queue";
 export function normalizeURL(params: string) {
   const url = new URL(params);
   const constructedURL = `${url.host}${url.pathname}`;
@@ -65,7 +65,8 @@ type Pages = {
 export async function crawlPage(
   baseURL: string,
   currentURL: string,
-  pages: Pages
+  pages: Pages,
+  queue: Queue
 ): Promise<Pages | undefined> {
   try {
     const curURL = new URL(currentURL);
@@ -92,7 +93,7 @@ export async function crawlPage(
     }
     const htmlBody = await response.text();
     const urls = getURLsFromHTML(htmlBody, baseURL);
-    const promises = urls.map((url) => crawlPage(baseURL, url, pages));
+    const promises = urls.map((url) => crawlPage(baseURL, url, pages, queue));
     for (const promise of promises) {
       await promise;
     }
