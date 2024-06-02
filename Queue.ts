@@ -1,7 +1,6 @@
 interface QueueI {
   items: Object;
   headIndex: number;
-  tailIndex: number;
   enqueue: Function;
   dequeue: Function;
   peek: Function;
@@ -9,62 +8,51 @@ interface QueueI {
   isEmpty: Function;
   clear: Function;
 }
-type Link = {
-  href: string;
-  baseURL: string;
-};
-type Items = {
-  [index: number]: Link;
-};
+
+type Item = URL;
 export default class Queue implements QueueI {
-  items: Items;
+  items: Item[];
   headIndex: number;
-  tailIndex: number;
 
   constructor() {
-    this.items = {};
+    this.items = [];
     this.headIndex = 0;
-    this.tailIndex = 0;
   }
 
   //adds a new element
-  enqueue(element: Link) {
-    this.items[this.tailIndex] = element;
-    this.tailIndex++;
+  enqueue(element: URL): boolean {
+    this.items.push(element);
+    return true;
   }
 
   //removes an element from head of the queue
-  dequeue() {
+  dequeue(): Item {
     let removedElement = this.items[this.headIndex];
     delete this.items[this.headIndex];
     this.headIndex++;
+    this.items.length--;
     return removedElement;
   }
 
   //shows the head element of the  queue
   peek() {
-    let peekElement = this.items[this.headIndex];
+    let peekElement = this.items[0];
     return peekElement;
   }
 
   //shows the number of items in queue
   size() {
-    return this.tailIndex - this.headIndex;
+    return this.items.length;
   }
 
   //checks if queue is empty or not
-  isEmpty() {
-    if (this.tailIndex - this.headIndex == 0) {
-      return true;
-    } else {
-      return false;
-    }
+  isEmpty(): boolean {
+    return this.size() === 0;
   }
 
   //empty the queue
   clear() {
-    this.items = {};
+    this.items = [];
     this.headIndex = 0;
-    this.tailIndex = 0;
   }
 }
