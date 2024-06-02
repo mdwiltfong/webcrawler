@@ -90,7 +90,7 @@ export async function crawlPage(
     console.log("Crawling - > ", currentURL);
     const response = await fetch(currentURL);
     if (response.status !== 200) {
-      console.log(`Got HTTP Error: ${response.status}`);
+      console.log(`Got HTTP Error for ${currentURL}: ${response.status}`);
       return pages;
     }
     const contentType = response.headers.get("content-type")!;
@@ -100,9 +100,9 @@ export async function crawlPage(
     }
     const htmlBody = await response.text();
     const urls = getURLsFromHTML(htmlBody, currentURL);
-    for (let i = 0; i < urls.length; i++) {
-      const url = urls[i];
-      await crawlPage(baseURL, url, pages)!;
+    const promises = urls.map((url) => crawlPage(baseURL, url, pages));
+    for (const promise of promises) {
+      await promise;
     }
     return pages;
   } catch (error: any) {

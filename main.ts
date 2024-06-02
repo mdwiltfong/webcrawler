@@ -1,5 +1,5 @@
 import { argv } from "node:process";
-import { getURLsFromHTML, normalizeURL, crawlPage } from "./crawl";
+import { crawlPage } from "./crawl";
 async function main() {
   try {
     if (argv.length < 3 || argv.length > 3) {
