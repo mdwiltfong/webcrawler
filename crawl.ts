@@ -14,10 +14,8 @@ import { JSDOM } from "jsdom";
 
 export function normalizeURL(params: string) {
   const url = new URL(params);
-  const host = url.host.toLowerCase();
-  const path = url.pathname.toLowerCase();
-  const constructedURL = `${host}${path}`;
-  if (constructedURL.length > 15 && constructedURL.slice(-1) === "/") {
+  const constructedURL = `${url.host}${url.pathname}`;
+  if (constructedURL.slice(-1) === "/") {
     return constructedURL.slice(0, -1);
   }
   return constructedURL;
@@ -28,24 +26,23 @@ Takes in two arguments:
 2. A string of the base URL
 */
 export function getURLsFromHTML(htmlBody: string, baseURL: string) {
-  const urls: string[] = [];
+  const urls = [];
   const dom = new JSDOM(htmlBody);
-  const aElements = dom.window.document.querySelectorAll("a");
-  for (const aElement of aElements) {
-    if (aElement.href.slice(0, 1) === "/") {
+  const anchors = dom.window.document.querySelectorAll("a");
+
+  for (const anchor of anchors) {
+    if (anchor.hasAttribute("href")) {
+      let href = anchor.getAttribute("href")!;
+
       try {
-        urls.push(new URL(aElement.href, baseURL).href);
+        href = new URL(href, baseURL).href;
+        urls.push(href);
       } catch (err: any) {
-        console.log(`${err.message}: ${aElement.href}`);
-      }
-    } else {
-      try {
-        urls.push(new URL(aElement.href).href);
-      } catch (err: any) {
-        console.log(`${err.message}: ${aElement.href}`);
+        console.log(`${err.message}: ${href}`);
       }
     }
   }
+
   return urls;
 }
 
@@ -80,13 +77,8 @@ export async function crawlPage(
     if (pages[normalizedURL] > 0) {
       pages[normalizedURL]++;
       return pages;
-    } else {
-      if (currentURL !== baseURL) {
-        pages[normalizedURL] = 1;
-      } else {
-        pages[normalizedURL] = 0;
-      }
     }
+    pages[normalizedURL] = 1;
     console.log("Crawling - > ", currentURL);
     const response = await fetch(currentURL);
     if (response.status !== 200) {
@@ -99,7 +91,7 @@ export async function crawlPage(
       return pages;
     }
     const htmlBody = await response.text();
-    const urls = getURLsFromHTML(htmlBody, currentURL);
+    const urls = getURLsFromHTML(htmlBody, baseURL);
     const promises = urls.map((url) => crawlPage(baseURL, url, pages));
     for (const promise of promises) {
       await promise;
