@@ -26,11 +26,11 @@ export default class Queue implements QueueI {
   }
 
   //removes an element from head of the queue
-  dequeue(): Item {
-    let removedElement = this.items[this.headIndex];
-    delete this.items[this.headIndex];
-    this.items.length--;
-    return removedElement;
+  dequeue(): Item | undefined {
+    if (this.isEmpty()) {
+      return undefined;
+    }
+    return this.items.shift();
   }
 
   //shows the head element of the  queue

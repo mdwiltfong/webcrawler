@@ -43,4 +43,5 @@ export async function crawlQueue(baseURL: URL, pages: Pages, queue: Queue) {
       }
     }
   }
+  return pages;
 }
