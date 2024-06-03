@@ -29,7 +29,6 @@ export default class Queue implements QueueI {
   dequeue(): Item {
     let removedElement = this.items[this.headIndex];
     delete this.items[this.headIndex];
-    this.headIndex++;
     this.items.length--;
     return removedElement;
   }

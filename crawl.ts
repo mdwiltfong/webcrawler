@@ -33,7 +33,6 @@ export function getURLsFromHTML(htmlBody: string, baseURL: string) {
   for (const anchor of anchors) {
     if (anchor.hasAttribute("href")) {
       let href = anchor.getAttribute("href")!;
-
       try {
         href = new URL(href, baseURL).href;
         urls.push(href);

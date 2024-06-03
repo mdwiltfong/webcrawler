@@ -16,38 +16,31 @@ export async function crawlQueue(baseURL: URL, pages: Pages, queue: Queue) {
     if (pages[normalizedURL] > 0) {
       pages[normalizedURL]++;
       continue;
-    } else {
-      if (currentURL !== baseURL) {
-        pages[normalizedURL] = 1;
-      } else {
-        pages[normalizedURL] = 0;
-      }
     }
 
-    console.log("Crawling -> ", normalizedURL.toString());
+    pages[normalizedURL] = 1;
+
+    console.log("Crawling -> ", normalizedURL);
     const response = await fetch(currentURL);
     if (response.status !== 200) {
       console.log(`Failed to crawl ${currentURL}`);
       continue;
     }
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("text/html")) {
+      console.log(`Got non-HTML response: ${contentType}`);
+      continue;
+    }
     const html = await response.text();
     const dom = new JSDOM(html);
     const aElements = dom.window.document.querySelectorAll("a");
-    for (const aElement of aElements) {
-      if (aElement.href.slice(0, 1) === "/") {
-        try {
-          queue.enqueue(new URL(aElement.href, currentURL));
-        } catch (err: any) {
-          console.log(`${err.message}: ${aElement.href}`);
-        }
-      } else {
-        try {
-          queue.enqueue(new URL(aElement.href));
-        } catch (err: any) {
-          console.log(`${err.message}: ${aElement.href}`);
-        }
+    for (const anchor of aElements) {
+      if (anchor.hasAttribute("href")) {
+        let href = anchor.getAttribute("href")!;
+        // convert any relative URLs to absolute URLs
+        href = new URL(href, baseURL).href;
+        queue.enqueue(new URL(href));
       }
     }
   }
-  return pages;
 }
