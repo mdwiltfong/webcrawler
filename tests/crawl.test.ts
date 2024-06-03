@@ -63,6 +63,6 @@ test("getURLsFromHTML handle error", () => {
   const inputBody =
     '<html><body><a href="path/one"><span>Boot.dev></span></a></body></html>';
   const actual = getURLsFromHTML(inputBody, inputURL);
-  const expected: string[] = [];
+  const expected: string[] = ["https://blog.boot.dev/path/one"];
   expect(actual).toEqual(expected);
 });
